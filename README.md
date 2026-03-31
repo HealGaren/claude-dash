@@ -2,9 +2,9 @@
 
 **Claude Code를 위한 관제 패널.**
 
-여러 Claude Code 세션을 한눈에 보고, 빠르게 전환하고, 하루 작업을 돌아보세요.
+여러 Claude Code 세션을 한눈에 보고, 빠르게 전환하고, 하루 작업을 돌아볼 수 있습니다.
 
-## 왜 필요한가요?
+## 왜 필요한가
 
 Claude Code를 터미널에서 쓰다 보면 세션이 쌓이고, 어디서 응답이 왔는지 확인하려고 터미널을 하나씩 전환해야 합니다. 하루가 끝나면 뭘 했는지도 흩어져 있죠.
 
@@ -56,7 +56,7 @@ Terminal  .claude/  Claude API
 
 ## 현재 상태
 
-Phase 0 (기반 구축) 진행 중입니다. 자세한 내용은 [로드맵](https://github.com/HealGaren/claude-dash/issues/15)을 확인하세요.
+Phase 0 (기반 구축) 진행 중입니다. 자세한 내용은 [로드맵](https://github.com/HealGaren/claude-dash/issues/15)에서 확인할 수 있습니다.
 
 ## 문서
 
