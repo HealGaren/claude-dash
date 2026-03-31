@@ -1,6 +1,7 @@
 import type { Category, Session } from '@cdash/shared'
 
 import { mockCategories, mockSessions } from './mockData'
+import type { PaginatedResponse } from './types'
 
 const MOCK_DELAY_MS = { min: 300, max: 500 }
 
@@ -10,14 +11,6 @@ function delay(ms: number): Promise<void> {
 
 function randomDelay(): number {
   return MOCK_DELAY_MS.min + Math.random() * (MOCK_DELAY_MS.max - MOCK_DELAY_MS.min)
-}
-
-export interface PaginatedResponse<T> {
-  items: T[]
-  totalCount: number
-  page: number
-  pageSize: number
-  totalPages: number
 }
 
 export async function fetchSessions(): Promise<Session[]> {
