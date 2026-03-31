@@ -1,0 +1,43 @@
+# CLAUDE.md
+
+## 프로젝트 개요
+
+claude-dash (`cdash`) — Claude Code 세션 런처, 상태 체커, 업무 분석 대시보드.
+자세한 방향은 `DIRECTION.md` 참고.
+
+## 기술 스택
+
+- **프론트엔드**: React + TypeScript, Vite, shadcn/ui + Tailwind, TanStack Query, react-hook-form + zod, react-error-boundary
+- **백엔드/데몬**: Bun + TypeScript
+- **데이터**: SQLite (Bun 내장 또는 better-sqlite3)
+- **공유**: zod 스키마로 프론트/백 타입 공유
+- **오케스트레이션**: MCP Channel Server (@modelcontextprotocol/sdk)
+
+## 프로젝트 구조
+
+모노레포 (구성 예정):
+- `packages/web` — React 프론트엔드 (Vite)
+- `packages/daemon` — Bun 백엔드 데몬
+- `packages/cli` — CLI 도구
+- `packages/shared` — 공유 타입, zod 스키마, 상수
+
+## 코드 컨벤션
+
+- 언어: TypeScript strict mode
+- 프론트엔드 데이터 페칭: `useSuspenseQuery` 사용, Suspense/ErrorBoundary 경계 적극 활용
+- 폼: react-hook-form + zod resolver
+- 상태: 서버 상태는 TanStack Query, 클라이언트 UI 상태만 로컬 (useState/zustand)
+- 컴포넌트: shadcn/ui 기본 제공분 활용, 없으면 직접 구현
+- 이슈/커밋/문서: 한국어
+
+## 개발 환경
+
+- OS: WSL2 + Windows Terminal
+- 터미널 통합 우선순위: Windows Terminal (wt CLI) > tmux
+- 패키지 매니저: 미정 (bun 또는 pnpm)
+
+## 주요 참고 자료
+
+- 로드맵: https://github.com/HealGaren/claude-dash/issues/15
+- Claude Code Channels API: https://code.claude.com/docs/en/channels-reference
+- Claude Code Hooks: https://code.claude.com/docs/en/hooks
