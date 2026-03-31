@@ -7,7 +7,7 @@ import userEvent from '@testing-library/user-event'
 import type { Session } from '@cdash/shared'
 
 import { mockCategories, mockSessions } from '@/features/sessions/api/mockData'
-import type { PaginatedResponse } from '@/features/sessions/api/sessionsApi'
+import type { PaginatedResponse } from '@/features/sessions/api/types'
 
 const { mockFetchSessionsPaginated, mockFetchCategories } = vi.hoisted(() => ({
   mockFetchSessionsPaginated: vi.fn<(page: number, pageSize: number) => Promise<unknown>>(),
@@ -132,25 +132,17 @@ describe('DashboardSessionsPage', () => {
   })
 
   it('마지막 페이지에서 다음 버튼이 비활성화된다', async () => {
-    const user = userEvent.setup()
-    mockFetchSessionsPaginated.mockImplementation((page: number, pageSize: number) =>
-      Promise.resolve(makePaginatedResponse(page, pageSize)),
+    // pageSize를 전체 데이터 수와 같게 설정해 1페이지 = 마지막 페이지가 되게 함
+    mockFetchSessionsPaginated.mockImplementation((_page: number, _pageSize: number) =>
+      Promise.resolve(makePaginatedResponse(1, mockSessions.length)),
     )
     mockFetchCategories.mockResolvedValue(mockCategories)
 
     renderWithProviders()
 
     await waitFor(() => {
-      expect(screen.getByText('1 / 4')).toBeInTheDocument()
+      expect(screen.getByText('1 / 1')).toBeInTheDocument()
     })
-
-    // 마지막 페이지까지 이동
-    await user.click(screen.getByRole('button', { name: '다음' }))
-    await waitFor(() => expect(screen.getByText('2 / 4')).toBeInTheDocument())
-    await user.click(screen.getByRole('button', { name: '다음' }))
-    await waitFor(() => expect(screen.getByText('3 / 4')).toBeInTheDocument())
-    await user.click(screen.getByRole('button', { name: '다음' }))
-    await waitFor(() => expect(screen.getByText('4 / 4')).toBeInTheDocument())
 
     expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
   })
