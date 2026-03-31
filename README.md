@@ -1,79 +1,66 @@
-# claude-dash (`cdash`)
+# claude-dash
 
-Claude Code 세션 런처, 상태 체커, 업무 분석 대시보드.
+**Claude Code를 위한 관제 패널.**
 
-## 왜 만드는가
+여러 Claude Code 세션을 한눈에 보고, 빠르게 전환하고, 하루 작업을 돌아보세요.
 
-Claude Code를 터미널에서 쓰다 보면:
-- 세션이 쌓이는데 어떤 게 돌고 있는지 한눈에 안 보인다
-- "응답 왔나?" 확인하려고 터미널을 일일이 전환해야 한다
-- 하루 끝에 뭘 했는지 기록이 흩어져 있다
+## 왜 필요한가요?
 
-**cdash는 Claude Code의 관제 패널이다.** 터미널에서 작업하는 세션들을 빠르게 호출하고, 상태를 한눈에 확인하고, 완료된 작업을 분석/회고하는 데 집중한다.
+Claude Code를 터미널에서 쓰다 보면 세션이 쌓이고, 어디서 응답이 왔는지 확인하려고 터미널을 하나씩 전환해야 합니다. 하루가 끝나면 뭘 했는지도 흩어져 있죠.
 
-## 핵심 기능
+cdash는 이 문제를 해결합니다.
 
-### 1. 빠른 호출 (Launch)
-카테고리/프리셋 기반으로 세션을 즉시 시작하거나, 기존 세션을 원클릭으로 재개.
+## 주요 기능
 
-### 2. 상태 체크 (Status)
-활성 세션들의 처리 상태를 실시간 모니터링. `running → ready` 전환이 핵심 알림 트리거.
-
-### 3. 후분석 (Review)
-일간/주간/월간 업무 요약, 반복 패턴 감지, 기술적 인사이트 추출.
+- **빠른 호출** — 카테고리/프리셋 기반으로 세션을 시작하거나, 기존 세션을 원클릭으로 재개
+- **실시간 상태 모니터링** — 어떤 세션이 처리 중이고, 어떤 세션이 내 입력을 기다리는지 한눈에 확인
+- **업무 회고** — 일간/주간 업무 요약, 반복 패턴 감지, 기술적 인사이트 자동 추출
 
 ## UI 콘셉트
 
-작업 공간은 터미널이고, cdash는 도우미. 풀사이즈 앱이 아니라 **관제 패널**.
+작업 공간은 터미널이고, cdash는 옆에 붙어있는 작은 관제 패널입니다.
 
-| 모드 | 크기 | 역할 |
+| 모드 | 크기 | 설명 |
 |------|------|------|
-| **Strip** | ~60px | 화면 한쪽에 붙어있는 최소 형태. 세션 상태 점만 표시 |
-| **Panel** | ~320px | Strip에서 토글 확장. 세션 카드 리스트, 생성/아카이브 조작 |
+| **Strip** | ~60px | 화면 한쪽에 상주. 세션 상태를 점(●/○)으로만 표시 |
+| **Panel** | ~320px | Strip에서 확장. 세션 카드 리스트와 조작 UI |
 | **Dashboard** | 풀 탭 | 멀티 카테고리 그리드, 타임라인, 분석 화면 |
-
-UI 설계 상세 (세션 카드, 인터랙션, 세션 상태 정의 등)는 [DIRECTION.md](./DIRECTION.md) 참고.
 
 ## 아키텍처
 
 ```
 ┌─────────────────────────┐
-│   Web UI (React, PWA)   │  ← 메인 인터페이스
+│   Web UI (React, PWA)   │
 │   Strip / Panel / Dash  │
 └───────────┬─────────────┘
             │ WebSocket + REST
 ┌───────────▼─────────────┐
-│   cdash daemon (Bun)    │  ← 백그라운드 서비스
-│   - Session manager     │
-│   - Hook engine         │
-│   - Analytics engine    │
-│   - SQLite storage      │
+│   cdash daemon (Bun)    │
+│   Session · Hook · DB   │
 └───────────┬─────────────┘
             │
     ┌───────┼────────┐
     ▼       ▼        ▼
 Terminal  .claude/  Claude API
-(wt/tmux) (import)  (summaries)
 ```
 
 ## 기술 스택
 
 | 레이어 | 기술 |
 |--------|------|
-| 프론트엔드 | React, Vite, shadcn/ui + Tailwind, TanStack Query |
-| 백엔드/데몬 | Bun (TypeScript) |
+| 프론트엔드 | React, Vite, shadcn/ui, Tailwind, TanStack Query |
+| 백엔드 | Bun + TypeScript |
 | 데이터 | SQLite |
-| 터미널 통합 | Windows Terminal (기본), tmux (보조) |
-| 오케스트레이션 | MCP Channel Server |
-| 패키지 매니저 | pnpm (모노레포 workspace) |
+| 터미널 | Windows Terminal (기본), tmux (보조) |
+| 패키지 매니저 | pnpm workspace |
 
 ## 현재 상태
 
-Phase 0 (기반 구축) 진행 중. [로드맵 이슈](https://github.com/HealGaren/claude-dash/issues/15) 참고.
+Phase 0 (기반 구축) 진행 중입니다. 자세한 내용은 [로드맵](https://github.com/HealGaren/claude-dash/issues/15)을 확인하세요.
 
-## 문서 안내
+## 문서
 
 | 문서 | 내용 |
 |------|------|
-| [DIRECTION.md](./DIRECTION.md) | 설계 상세 — UI 설계, 데이터 모델, Hook/Channel 연동, 설정 파일 구조 |
-| [CLAUDE.md](./CLAUDE.md) | AI/개발 컨벤션 — 코드 스타일, 프로젝트 구조, 기술 스택 규칙 |
+| [DIRECTION.md](./DIRECTION.md) | 설계 상세 — UI, 데이터 모델, Hook/Channel 연동 |
+| [CLAUDE.md](./CLAUDE.md) | 개발 컨벤션 — 코드 스타일, 프로젝트 구조 |
