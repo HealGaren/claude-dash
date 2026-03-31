@@ -2,6 +2,7 @@
 
 > Claude Code를 위한 관제 패널.
 
+[![CI](https://github.com/HealGaren/claude-dash/actions/workflows/ci.yml/badge.svg)](https://github.com/HealGaren/claude-dash/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](https://www.typescriptlang.org/)
 [![pnpm](https://img.shields.io/badge/pnpm-workspace-F69220)](https://pnpm.io/)
 [![Status](https://img.shields.io/badge/status-Phase%200-0E8A16)](#현재-상태)
