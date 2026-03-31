@@ -103,7 +103,7 @@ Terminal  .claude/  Claude API
 | 레이어 | 기술 | 비고 |
 |--------|------|------|
 | 프론트엔드 | React, shadcn/ui + Tailwind, TanStack Query (useSuspenseQuery), react-hook-form + zod, react-error-boundary | Suspense/ErrorBoundary 적극 활용 |
-| 백엔드/데몬 | Bun (TypeScript) | 경량, SQLite 내장 |
+| 백엔드/데몬 | Bun (TypeScript) | 경량, SQLite 내장, 패키지 관리는 pnpm |
 | 데이터 | SQLite | 로컬 단일 파일, FTS5 검색 |
 | 터미널 | Windows Terminal (기본), tmux (보조) | WSL + wt CLI 환경 기준 |
 | 네이티브 | Rust binary (필요 시) | 윈도우 포커스, 시스템 알림 |
