@@ -1,8 +1,8 @@
-import { Suspense } from 'react'
-import { ErrorBoundary } from 'react-error-boundary'
+import type { FallbackProps } from 'react-error-boundary'
 
 import { useQueryClient } from '@tanstack/react-query'
 
+import { SuspenseBoundary } from '@/components/SuspenseBoundary'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -31,12 +31,7 @@ const SessionListSkeleton = () => {
   )
 }
 
-interface ErrorFallbackProps {
-  error: Error
-  resetErrorBoundary: () => void
-}
-
-const SessionListError = ({ error, resetErrorBoundary }: ErrorFallbackProps) => {
+const SessionListError = ({ error, resetErrorBoundary }: FallbackProps) => {
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-16">
       <p className="text-sm text-muted-foreground">{error.message}</p>
@@ -59,16 +54,15 @@ export const DashboardSessionsPage = () => {
           <TabsTrigger value="infinite">무한스크롤</TabsTrigger>
         </TabsList>
         <TabsContent value="paginated">
-          <ErrorBoundary
-            FallbackComponent={SessionListError}
+          <SuspenseBoundary
+            pendingFallback={<SessionListSkeleton />}
+            ErrorFallback={SessionListError}
             onReset={() => {
               queryClient.resetQueries({ queryKey: sessionKeys.all })
             }}
           >
-            <Suspense fallback={<SessionListSkeleton />}>
-              <PaginatedSessionList />
-            </Suspense>
-          </ErrorBoundary>
+            <PaginatedSessionList />
+          </SuspenseBoundary>
         </TabsContent>
         <TabsContent value="infinite">
           <div className="flex items-center justify-center py-16">
