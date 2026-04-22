@@ -3,6 +3,7 @@ export const sessionKeys = {
   lists: () => [...sessionKeys.all, 'list'] as const,
   list: (params: { page: number; pageSize: number }) =>
     [...sessionKeys.all, 'list', params] as const,
+  infinite: (params: { pageSize: number }) => [...sessionKeys.all, 'infinite', params] as const,
   detail: (id: string) => [...sessionKeys.all, 'detail', id] as const,
 }
 

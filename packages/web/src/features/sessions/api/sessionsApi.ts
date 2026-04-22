@@ -1,7 +1,7 @@
 import type { Category, Session } from '@cdash/shared'
 
 import { mockCategories, mockSessions } from './mockData'
-import type { PaginatedResponse } from './types'
+import type { CursorResponse, PaginatedResponse } from './types'
 
 const MOCK_DELAY_MS = { min: 300, max: 500 }
 
@@ -28,6 +28,18 @@ export async function fetchSessionsPaginated(
   const start = (page - 1) * pageSize
   const items = mockSessions.slice(start, start + pageSize)
   return { items, totalCount, page, pageSize, totalPages }
+}
+
+export async function fetchSessionsInfinite(
+  cursor: string | null,
+  limit: number,
+): Promise<CursorResponse<Session>> {
+  await delay(randomDelay())
+  const startIndex = cursor ? mockSessions.findIndex((s) => s.id === cursor) + 1 : 0
+  const items = mockSessions.slice(startIndex, startIndex + limit)
+  const hasMore = startIndex + limit < mockSessions.length
+  const nextCursor = hasMore && items.length > 0 ? items[items.length - 1].id : null
+  return { items, nextCursor }
 }
 
 export async function fetchCategories(): Promise<Category[]> {

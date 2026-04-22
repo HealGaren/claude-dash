@@ -7,18 +7,22 @@ import userEvent from '@testing-library/user-event'
 import type { Session } from '@cdash/shared'
 
 import { mockCategories, mockSessions } from '@/features/sessions/api/mockData'
-import type { PaginatedResponse } from '@/features/sessions/api/types'
+import type { CursorResponse, PaginatedResponse } from '@/features/sessions/api/types'
 
-const { mockFetchSessionsPaginated, mockFetchCategories } = vi.hoisted(() => ({
-  mockFetchSessionsPaginated: vi.fn<(page: number, pageSize: number) => Promise<unknown>>(),
-  mockFetchCategories: vi.fn<() => Promise<unknown>>(),
-}))
+const { mockFetchSessionsPaginated, mockFetchSessionsInfinite, mockFetchCategories } = vi.hoisted(
+  () => ({
+    mockFetchSessionsPaginated: vi.fn<(page: number, pageSize: number) => Promise<unknown>>(),
+    mockFetchSessionsInfinite: vi.fn<(cursor: string | null, limit: number) => Promise<unknown>>(),
+    mockFetchCategories: vi.fn<() => Promise<unknown>>(),
+  }),
+)
 
 vi.mock('@/features/sessions/api/sessionsApi', async (importOriginal) => {
   const original = (await importOriginal()) as Record<string, unknown>
   return {
     ...original,
     fetchSessionsPaginated: mockFetchSessionsPaginated,
+    fetchSessionsInfinite: mockFetchSessionsInfinite,
     fetchCategories: mockFetchCategories,
   }
 })
@@ -29,6 +33,14 @@ function makePaginatedResponse(page: number, pageSize: number): PaginatedRespons
   const start = (page - 1) * pageSize
   const items = mockSessions.slice(start, start + pageSize)
   return { items, totalCount, page, pageSize, totalPages }
+}
+
+function makeCursorResponse(cursor: string | null, limit: number): CursorResponse<Session> {
+  const startIndex = cursor ? mockSessions.findIndex((s) => s.id === cursor) + 1 : 0
+  const items = mockSessions.slice(startIndex, startIndex + limit)
+  const hasMore = startIndex + limit < mockSessions.length
+  const nextCursor = hasMore && items.length > 0 ? items[items.length - 1].id : null
+  return { items, nextCursor }
 }
 
 function renderWithProviders() {
@@ -147,10 +159,13 @@ describe('DashboardSessionsPage', () => {
     expect(screen.getByRole('button', { name: '다음' })).toBeDisabled()
   })
 
-  it('무한스크롤 탭에 준비 중 메시지를 표시한다', async () => {
+  it('무한스크롤 탭 전환 시 첫 페이지가 표시된다', async () => {
     const user = userEvent.setup()
     mockFetchSessionsPaginated.mockImplementation((page: number, pageSize: number) =>
       Promise.resolve(makePaginatedResponse(page, pageSize)),
+    )
+    mockFetchSessionsInfinite.mockImplementation((cursor: string | null, limit: number) =>
+      Promise.resolve(makeCursorResponse(cursor, limit)),
     )
     mockFetchCategories.mockResolvedValue(mockCategories)
 
@@ -163,7 +178,10 @@ describe('DashboardSessionsPage', () => {
     await user.click(screen.getByRole('tab', { name: '무한스크롤' }))
 
     await waitFor(() => {
-      expect(screen.getByText('무한스크롤 — 준비 중')).toBeInTheDocument()
+      expect(mockFetchSessionsInfinite).toHaveBeenCalled()
+    })
+    await waitFor(() => {
+      expect(screen.getByText(mockSessions[0].title)).toBeInTheDocument()
     })
   })
 })

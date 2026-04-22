@@ -1,7 +1,12 @@
+import type { FallbackProps } from 'react-error-boundary'
+
 import type { Session } from '@cdash/shared'
 
+import { SuspenseBoundary } from '@/components/SuspenseBoundary'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 
 import { useCategory } from '../hooks/useCategory'
 import { SessionStatusIndicator } from './SessionStatusIndicator'
@@ -21,7 +26,47 @@ function formatRelativeTime(dateString: string): string {
   return `${days}일 전`
 }
 
+const SessionCardSkeleton = () => (
+  <Card size="sm">
+    <CardHeader>
+      <div className="flex items-center gap-2">
+        <Skeleton className="size-2.5 rounded-full" />
+        <Skeleton className="h-4 w-3/4" />
+      </div>
+    </CardHeader>
+    <CardContent>
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-5 w-20 rounded-full" />
+        <Skeleton className="h-3 w-12" />
+      </div>
+    </CardContent>
+  </Card>
+)
+
+const SessionCardError = ({ error, resetErrorBoundary }: FallbackProps) => (
+  <Card size="sm">
+    <CardContent>
+      <div className="flex items-center justify-between gap-2">
+        <p className="truncate text-xs text-muted-foreground">{error.message}</p>
+        <Button variant="outline" size="sm" onClick={resetErrorBoundary}>
+          재시도
+        </Button>
+      </div>
+    </CardContent>
+  </Card>
+)
+
+// 카테고리 캐시가 외부에서 reset/remove되어도 카드 단위로만 fallback이 뜨도록
+// 경계를 카드 안쪽에 둔다. 상위 리스트/스크롤 위치가 보존됨.
 export const SessionCard = ({ session }: SessionCardProps) => {
+  return (
+    <SuspenseBoundary pendingFallback={<SessionCardSkeleton />} ErrorFallback={SessionCardError}>
+      <SessionCardContent session={session} />
+    </SuspenseBoundary>
+  )
+}
+
+const SessionCardContent = ({ session }: SessionCardProps) => {
   const category = useCategory(session.categoryId)
 
   return (

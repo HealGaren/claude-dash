@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { sessionKeys } from '@/features/sessions/api/queryKeys'
+import { InfiniteSessionList } from '@/features/sessions/components/InfiniteSessionList'
 import { PaginatedSessionList } from '@/features/sessions/components/PaginatedSessionList'
 
 const SessionListSkeleton = () => {
@@ -65,9 +66,15 @@ export const DashboardSessionsPage = () => {
           </SuspenseBoundary>
         </TabsContent>
         <TabsContent value="infinite">
-          <div className="flex items-center justify-center py-16">
-            <p className="text-sm text-muted-foreground">무한스크롤 — 준비 중</p>
-          </div>
+          <SuspenseBoundary
+            pendingFallback={<SessionListSkeleton />}
+            ErrorFallback={SessionListError}
+            onReset={() => {
+              queryClient.resetQueries({ queryKey: sessionKeys.all })
+            }}
+          >
+            <InfiniteSessionList />
+          </SuspenseBoundary>
         </TabsContent>
       </Tabs>
     </div>
