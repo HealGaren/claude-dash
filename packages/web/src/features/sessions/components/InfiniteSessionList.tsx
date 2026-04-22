@@ -1,4 +1,4 @@
-import { IntersectionTrigger } from '@/components/IntersectionTrigger'
+import { ViewportSentinel } from '@/components/ViewportSentinel'
 
 import { useInfiniteSessions } from '../hooks/useInfiniteSessions'
 import { SessionGrid } from './SessionGrid'
@@ -11,7 +11,7 @@ export const InfiniteSessionList = () => {
 
   const sessions = data.pages.flatMap((page) => page.items)
 
-  const handleEnter = () => {
+  const handleIntersect = () => {
     void fetchNextPage()
   }
 
@@ -22,10 +22,10 @@ export const InfiniteSessionList = () => {
         isFetchingNextPage={isFetchingNextPage}
         hasNextPage={hasNextPage}
         error={error}
-        onRetry={handleEnter}
+        onRetry={handleIntersect}
       />
-      <IntersectionTrigger
-        onEnter={handleEnter}
+      <ViewportSentinel
+        onIntersect={handleIntersect}
         disabled={!hasNextPage || isFetchingNextPage || error !== null}
       />
     </div>
