@@ -39,6 +39,23 @@ SessionList가 카테고리를 대신 가져와서 내려주는 것이 아니다
 TanStack Query의 캐시가 중복 요청을 자동으로 제거하기 때문에,
 여러 컴포넌트가 같은 훅을 호출해도 실제 네트워크 요청은 1번이다.
 
+### 간접 전달도 "내려주기"에 해당한다
+
+`category` 객체를 props로 직접 내려주는 것은 쉽게 눈치챌 수 있지만,
+룩업 맵이나 파생 배열 형태로 우회해 내려주는 경우가 놓치기 쉽다.
+
+```tsx
+// 이것도 "카테고리를 대신 가져와 내려주는" 행위다
+const categoryMap = new Map(categories.map((c) => [c.id, c]))
+return sessions.map((s) => <SessionCard category={categoryMap.get(s.categoryId)} ... />)
+```
+
+`Map`, `Object.fromEntries`, `.find`, `.filter`로 다른 도메인 데이터를
+현재 컴포넌트가 연결하고 있다면, 그 연결을 leaf로 내려야 한다는 신호다.
+leaf가 `useCategory(id)` 같은 훅으로 직접 조회하면 된다.
+
+예외는 명확히 성능상 문제가 증명된 경우뿐이고, 실제로는 거의 발생하지 않는다.
+
 ## 컴포넌트 순수성에 대한 입장
 
 "컴포넌트는 props만 받아야 한다"를 기본 규칙으로 두지 않는다.

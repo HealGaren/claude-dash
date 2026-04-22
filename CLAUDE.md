@@ -84,8 +84,46 @@ src/
 - 한 파일에 한 컴포넌트 (named export만, `export default` 금지)
 - 컴포넌트 150줄 넘으면 분리 신호
 - Props는 컴포넌트 바로 위에 interface 정의, `{컴포넌트명}Props` 네이밍
-- 데이터를 렌더링하는 컴포넌트가 해당 데이터를 직접 요청한다 (커스텀 훅을 통해)
+- **데이터를 렌더링하는 컴포넌트가 해당 데이터를 직접 요청한다** (커스텀 훅을 통해)
 - 표시할 데이터가 사라지면 요청도 함께 사라져야 한다
+
+### 데이터 소유권: leaf 우선 (반드시 체크)
+
+원칙: **데이터를 실제로 화면에 그리는 leaf 컴포넌트가 그 데이터를 직접 조회한다.** 상위 컴포넌트가 조회해서 내려주지 않는다.
+
+아래 패턴은 모두 "상위가 대신 조회해서 내려주는" 안티패턴이다. 룩업 맵/파생 배열/ID→객체 변환 같은 간접적인 형태도 포함된다:
+
+```tsx
+// ❌ Don't — 상위에서 categoryMap을 만들어 내려준다
+const SessionList = ({ sessions }) => {
+  const { data: categories } = useCategories()
+  const categoryMap = new Map(categories.map((c) => [c.id, c]))
+  return sessions.map((s) => (
+    <SessionCard session={s} category={categoryMap.get(s.categoryId)} />
+  ))
+}
+
+// ❌ Don't — props로 category 객체를 받는 SessionCard
+const SessionCard = ({ session, category }) => { ... }
+```
+
+```tsx
+// ✅ Do — leaf가 자기 카테고리를 직접 조회한다
+const SessionCard = ({ session }) => {
+  const category = useCategory(session.categoryId)
+  ...
+}
+
+// 공통 조합 훅은 useCategories 재활용 + id 조회만 감싼다
+export function useCategory(id: string) {
+  const { data: categories } = useCategories()
+  return categories.find((c) => c.id === id)
+}
+```
+
+TanStack Query 캐시가 중복 요청을 제거하므로 성능 걱정 불필요. 여러 카드가 `useCategory`를 호출해도 실제 네트워크 요청은 1번.
+
+**판정 팁**: 상위 컴포넌트에서 `new Map(...)`, `Object.fromEntries(...)`, `.find(...)`, `.filter(...)`로 다른 도메인 데이터를 "연결"하고 있다면 거의 확실히 안티패턴이다. 그 연결을 leaf로 내려라.
 
 ### 컴포넌트 내부 구조 순서
 
@@ -117,6 +155,8 @@ src/
 - 페이지 단위로 ErrorBoundary 배치
 - 독립적으로 로딩 가능한 영역마다 Suspense 배치
 - ErrorBoundary는 retry 가능하게 구현
+- **Suspense + ErrorBoundary를 같이 쓰는 지점은 `components/SuspenseBoundary`로 통일** — 인라인으로 둘을 직접 조합하지 말 것
+- 무한스크롤/pagination 등 **이미 컨텐츠가 보이는 상태에서의 추가 로딩에는 Suspense fallback을 쓰지 말 것** (전체 스켈레톤이 다시 뜨는 UX는 회피). 초기 로딩만 SuspenseBoundary fallback, 추가 로딩은 해당 영역 내부의 인디케이터로.
 
 ### import 규칙
 
@@ -149,6 +189,18 @@ pnpm lint                 # ESLint 실행
 pnpm format               # Prettier 포맷팅
 pnpm format:check         # Prettier 포맷 체크
 ```
+
+## PR 올리기 전 셀프 체크리스트
+
+프론트엔드 코드를 PR로 올리기 전에 아래 항목을 직접 확인한다. "당연히 지키고 있을 것"이라고 가정하지 말고 실제로 파일을 열어 확인한다.
+
+- [ ] 각 컴포넌트가 표시하는 데이터를 **자기 자신이 직접 조회**하는가? 상위에서 `map`/`find`/룩업 맵으로 연결해 내려주는 곳은 없는가?
+- [ ] `category`, `author`, `project` 같은 **관계 데이터**를 props로 넘기는 컴포넌트는 없는가? (있다면 해당 컴포넌트가 id로 직접 조회하도록 수정)
+- [ ] `Suspense` + `ErrorBoundary`를 인라인으로 조합한 곳이 있는가? (있다면 `SuspenseBoundary` 공용 컴포넌트로 교체)
+- [ ] 무한스크롤/페이지네이션에서 **추가 로딩 시 기존 컨텐츠가 깜빡이지 않는가**? (전체 Suspense fallback이 다시 뜨면 안 됨)
+- [ ] `pnpm typecheck`, `pnpm lint`, `pnpm test` 모두 통과하는가?
+- [ ] 함수/변수명이 6개월 뒤에도 읽기 쉬운가? (약어, 임시 네이밍 남아있지 않은가)
+- [ ] 사용하지 않는 import, 주석 처리된 코드, TODO/FIXME 없이 깔끔한가?
 
 ## 주요 참고 자료
 

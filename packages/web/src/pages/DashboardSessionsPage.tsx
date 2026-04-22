@@ -1,12 +1,13 @@
-import { Suspense } from 'react'
-import { ErrorBoundary } from 'react-error-boundary'
+import type { FallbackProps } from 'react-error-boundary'
 
 import { useQueryClient } from '@tanstack/react-query'
 
+import { SuspenseBoundary } from '@/components/SuspenseBoundary'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { sessionKeys } from '@/features/sessions/api/queryKeys'
-import { SessionList } from '@/features/sessions/components/SessionList'
+import { PaginatedSessionList } from '@/features/sessions/components/PaginatedSessionList'
 
 const SessionListSkeleton = () => {
   return (
@@ -30,12 +31,7 @@ const SessionListSkeleton = () => {
   )
 }
 
-interface ErrorFallbackProps {
-  error: Error
-  resetErrorBoundary: () => void
-}
-
-const SessionListError = ({ error, resetErrorBoundary }: ErrorFallbackProps) => {
+const SessionListError = ({ error, resetErrorBoundary }: FallbackProps) => {
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-16">
       <p className="text-sm text-muted-foreground">{error.message}</p>
@@ -52,16 +48,28 @@ export const DashboardSessionsPage = () => {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold">세션</h1>
-      <ErrorBoundary
-        FallbackComponent={SessionListError}
-        onReset={() => {
-          queryClient.resetQueries({ queryKey: sessionKeys.all })
-        }}
-      >
-        <Suspense fallback={<SessionListSkeleton />}>
-          <SessionList />
-        </Suspense>
-      </ErrorBoundary>
+      <Tabs defaultValue="paginated">
+        <TabsList>
+          <TabsTrigger value="paginated">페이지네이션</TabsTrigger>
+          <TabsTrigger value="infinite">무한스크롤</TabsTrigger>
+        </TabsList>
+        <TabsContent value="paginated">
+          <SuspenseBoundary
+            pendingFallback={<SessionListSkeleton />}
+            ErrorFallback={SessionListError}
+            onReset={() => {
+              queryClient.resetQueries({ queryKey: sessionKeys.all })
+            }}
+          >
+            <PaginatedSessionList />
+          </SuspenseBoundary>
+        </TabsContent>
+        <TabsContent value="infinite">
+          <div className="flex items-center justify-center py-16">
+            <p className="text-sm text-muted-foreground">무한스크롤 — 준비 중</p>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
