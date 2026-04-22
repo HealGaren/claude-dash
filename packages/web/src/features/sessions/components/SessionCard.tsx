@@ -1,13 +1,13 @@
-import type { Category, Session } from '@cdash/shared'
+import type { Session } from '@cdash/shared'
 
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
+import { useCategory } from '../hooks/useCategory'
 import { SessionStatusIndicator } from './SessionStatusIndicator'
 
 interface SessionCardProps {
   session: Session
-  category: Category | undefined
 }
 
 function formatRelativeTime(dateString: string): string {
@@ -21,7 +21,9 @@ function formatRelativeTime(dateString: string): string {
   return `${days}일 전`
 }
 
-export const SessionCard = ({ session, category }: SessionCardProps) => {
+export const SessionCard = ({ session }: SessionCardProps) => {
+  const category = useCategory(session.categoryId)
+
   return (
     <Card size="sm">
       <CardHeader>
